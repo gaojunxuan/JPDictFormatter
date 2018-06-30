@@ -16,6 +16,7 @@ namespace JPDictFormatter
         public string Pos { get; set; }
         public string Keyword { get; set; }
         public string Reading { get; set; }
+        public string Kanji { get; set; }
         public string LoanWord { get; set; }
         public string SeeAlso { get; set; }
     }

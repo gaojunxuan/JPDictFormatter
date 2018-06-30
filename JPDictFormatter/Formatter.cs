@@ -19,7 +19,15 @@ namespace JPDictFormatter
             string loanWord = "";
             Regex pattern = new Regex(@"(\[.*\])+");
             Regex seealsoPattern = new Regex(@"(（同.*?）)");
-            Regex loanhWordPattern = new Regex(@"(（.*?）).*");
+            Regex loanhWordPattern = new Regex(@"(（.?）).*");
+            Regex hiraganaPattern = new Regex(@"^([ぁ-ん])+$");
+            string tempLine = "";
+            //Add leading line break
+            if(!string.IsNullOrWhiteSpace(lines[0])&&!hiraganaPattern.IsMatch(lines[0]))
+            {
+                explanationStr = "\n" + explanationStr;
+                lines = explanationStr.Split('\n');
+            }
             if(!string.IsNullOrWhiteSpace(lines[0]))
             {
                 reading = lines[0];
@@ -59,13 +67,15 @@ namespace JPDictFormatter
                             {
                                 if (string.IsNullOrWhiteSpace(lines[index - 2]))
                                 {
-                                    reading = lines[index - 3];
+                                    if (hiraganaPattern.IsMatch(lines[index - 3]))
+                                        reading = lines[index - 3];
                                 }
                                 else
                                 {
                                     if (!lines[index - 2].Contains("["))
                                     {
-                                        reading = lines[index - 2];
+                                        if (hiraganaPattern.IsMatch(lines[index - 2]))
+                                            reading = lines[index - 2];
                                     }
                                 }
                             }
@@ -79,7 +89,12 @@ namespace JPDictFormatter
                             }
                             explanation = seealsoPattern.Replace(explanation, "");
                         }
-                        result.Add(new Dict() { Definition = explanation, Pos = pos, Keyword = kanji, Reading = reading, SeeAlso = seealso });
+                        if (tempLine != explanation)
+                        {
+                            result.Add(new Dict() { Definition = explanation, Pos = pos, Kanji = kanji, Reading = reading, SeeAlso = seealso });
+                            tempLine = explanation;
+                        }
+                            
                     }
                     index++;
                 }
@@ -121,7 +136,7 @@ namespace JPDictFormatter
                 {
                     if (!string.IsNullOrEmpty(g.Reading)&&g.Reading != reading)
                         reading = g.Reading;
-                    targetConnection.Insert(new Dict() { ItemId = counter, Keyword = i.JpChar, Reading = reading.Replace("·", ""), Pos = g.Pos, Definition = g.Definition, LoanWord = g.LoanWord, SeeAlso = g.SeeAlso });
+                    targetConnection.Insert(new Dict() { ItemId = counter, Keyword = i.JpChar, Kanji = g.Kanji, Reading = reading.Replace("·", ""), Pos = g.Pos, Definition = g.Definition, LoanWord = g.LoanWord, SeeAlso = g.SeeAlso });
                 }
                 Console.WriteLine(counter);
                 counter++;
